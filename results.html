@@ -6,7 +6,6 @@
   <title>PHN Prediction Results</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
     :root {
@@ -14,7 +13,6 @@
       --color-light-bg: #f5f7fa;
       --color-high-risk: #dc3545;
       --color-low-risk: #28a745;
-      --color-border: #e9ecef;
     }
 
     body {
@@ -22,259 +20,142 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
+    .wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
     .result-card {
-      margin-top: 60px;
-      margin-bottom: 60px;
-      padding: 50px;
+      width: 100%;
+      max-width: 720px;
+      padding: 60px 60px 50px;
       border-radius: 18px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
       background-color: white;
+      text-align: center;
     }
 
     .page-title {
       color: #343a40;
       font-weight: 700;
+      font-size: 2.6rem;
+      margin-bottom: 42px;
     }
 
-    .risk-label {
+    .sub-title {
+      font-size: 1.25rem;
+      color: #6c757d;
+      margin-bottom: 18px;
+    }
+
+    .risk-pill {
       display: inline-block;
-      padding: 10px 25px;
-      border-radius: 50px;
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-top: 10px;
+      padding: 14px 42px;
+      border-radius: 999px;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+      margin-bottom: 36px;
     }
 
-    .risk-high {
-      background-color: var(--color-high-risk);
-      color: white;
-      box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+    .risk-low { background: var(--color-low-risk); }
+    .risk-high { background: var(--color-high-risk); }
+    .risk-unknown { background: #6c757d; }
+
+    .divider {
+      height: 1px;
+      background: rgba(0,0,0,0.08);
+      margin: 18px 0 34px;
     }
 
-    .risk-low {
-      background-color: var(--color-low-risk);
-      color: white;
-      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+    .prob-title {
+      font-size: 1.25rem;
+      color: #6c757d;
+      margin-bottom: 6px;
     }
 
-    .risk-unknown {
-      background-color: #6c757d;
-      color: white;
-    }
-
-    .prediction-value {
-      font-size: 3rem;
+    .prob-value {
+      font-size: 4rem;
       font-weight: 300;
       color: var(--color-brand);
-      margin-top: 5px;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .prob-range {
+      color: #6c757d;
+      font-size: 0.95rem;
+      margin-bottom: 34px;
     }
 
     .btn-brand {
-      --bs-btn-bg: var(--color-brand);
-      --bs-btn-border-color: var(--color-brand);
-      --bs-btn-hover-bg: #006856;
-      --bs-btn-hover-border-color: #006856;
-      font-weight: 600;
-      padding: 12px 30px;
+      width: 100%;
+      background: var(--color-brand);
+      border: none;
+      color: #000;
+      font-weight: 700;
+      font-size: 1.2rem;
+      padding: 18px 18px;
       border-radius: 8px;
     }
-
-    .section-title {
-      font-weight: 700;
-      color: #343a40;
-      margin-top: 25px;
-      margin-bottom: 10px;
-    }
-
-    .kv-table {
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .kv-table table {
-      margin: 0;
-    }
-
-    .kv-table th {
-      width: 45%;
-      background: #f8f9fa;
-      font-weight: 600;
-      color: #495057;
-      border-bottom: 1px solid var(--color-border) !important;
-    }
-
-    .kv-table td {
-      border-bottom: 1px solid var(--color-border) !important;
-    }
-
-    .kv-table tr:last-child th,
-    .kv-table tr:last-child td {
-      border-bottom: 0 !important;
-    }
-
-    .small-hint {
-      color: #6c757d;
-      font-size: 0.9rem;
-    }
-
-    code {
-      color: #0b7285;
+    .btn-brand:hover {
+      background: #006856;
+      color: #000;
     }
   </style>
 </head>
 
 <body>
+<div class="wrap">
+  <div class="result-card">
 
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-lg-9 col-xl-8">
-      <div class="card result-card">
+    <div class="page-title">PHN Prediction Results</div>
 
-        <!-- ===== Title ===== -->
-        <h1 class="page-title text-center mb-4">PHN Prediction Results</h1>
+    <div class="sub-title">PHN Risk Prediction</div>
+    <div id="riskPill" class="risk-pill risk-unknown">Unknown</div>
 
-        <!-- ===== Risk ===== -->
-        <div class="text-center mb-4">
-          <p class="fs-5 text-muted mb-2">PHN Risk Prediction</p>
+    <div class="divider"></div>
 
-          <div id="riskBadge" class="risk-label risk-unknown">
-            <i id="riskIcon" class="fa-solid fa-circle-question me-2"></i>
-            <span id="riskText">Unknown</span>
-          </div>
-        </div>
+    <div class="prob-title">PHN Probability:</div>
+    <div id="probValue" class="prob-value">N/A</div>
+    <div class="prob-range">(0.0000 - 1.0000)</div>
 
-        <!-- ===== Probability ===== -->
-        <div class="text-center mb-4 border-top pt-4">
-          <p class="fs-5 text-muted mb-0">PHN Probability:</p>
-          <p id="probValue" class="prediction-value">N/A</p>
-          <small class="text-secondary">(0.0000 - 1.0000)</small>
-        </div>
+    <a class="btn btn-brand" href="index.html">Return</a>
 
-        <!-- ===== Inputs ===== -->
-        <div class="border-top pt-4">
-          <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
-            <div>
-              <div class="section-title">Submitted Inputs</div>
-              <div class="small-hint">These values are taken from the form and passed via URL parameter <code>inputs</code>.</div>
-            </div>
-          </div>
-
-          <div class="kv-table mt-3">
-            <table class="table table-sm">
-              <tbody id="inputsTableBody">
-                <!-- JS render rows here -->
-              </tbody>
-            </table>
-          </div>
-
-          <div id="inputsError" class="alert alert-warning mt-3 d-none mb-0"></div>
-        </div>
-
-        <!-- ===== Buttons ===== -->
-        <div class="mt-4">
-          <a href="index.html" class="btn btn-brand btn-lg w-100">
-            <i class="fa-solid fa-arrow-left me-2"></i> Return
-          </a>
-        </div>
-
-      </div>
-    </div>
   </div>
 </div>
 
 <script>
   const params = new URLSearchParams(window.location.search);
+  const riskTextRaw = (params.get("risk_text") || "").trim();
+  const probaRaw = (params.get("prediction_proba") || "").trim();
 
-  // --------- Helpers ----------
-  function esc(s){
-    return String(s).replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
-  }
-
-  function prettyKey(k){
-    // 你想显示更“医学友好”的名字，可以在这里映射
-    const map = {
-      age: "Age",
-      baseline_vas: "Baseline VAS",
-      pcs_score: "PCS",
-      mcs_ics_score: "MCS",
-      psqi_score: "PSQI",
-      ly_count: "LY#",
-      mono_count: "MO#",
-      alb: "ALB",
-      glu: "Glu",
-      a_g: "A/G"
-    };
-    return map[k] || k;
-  }
-
-  // --------- Result: risk + proba ----------
-  const riskTextRaw = (params.get("risk_text") || "Unknown").trim();
-  const probaRaw = (params.get("prediction_proba") || "N/A").trim();
-
-  const riskBadge = document.getElementById("riskBadge");
-  const riskText = document.getElementById("riskText");
-  const riskIcon = document.getElementById("riskIcon");
+  const riskPill = document.getElementById("riskPill");
   const probValue = document.getElementById("probValue");
 
+  // probability formatting
   const pNum = Number(probaRaw);
-  probValue.textContent = Number.isNaN(pNum) ? probaRaw : pNum.toFixed(4);
+  probValue.textContent = (!Number.isNaN(pNum) && probaRaw !== "")
+    ? pNum.toFixed(4)
+    : (probaRaw || "N/A");
 
+  // risk pill
   const lower = riskTextRaw.toLowerCase();
-  riskText.textContent = riskTextRaw;
+  riskPill.classList.remove("risk-low", "risk-high", "risk-unknown");
 
-  riskBadge.classList.remove("risk-high", "risk-low", "risk-unknown");
-  if (lower.includes("high")) {
-    riskBadge.classList.add("risk-high");
-    riskIcon.className = "fa-solid fa-triangle-exclamation me-2";
-    riskText.textContent = "High Risk";
-  } else if (lower.includes("low")) {
-    riskBadge.classList.add("risk-low");
-    riskIcon.className = "fa-solid fa-circle-check me-2";
-    riskText.textContent = "Low Risk";
+  if (lower.includes("low")) {
+    riskPill.classList.add("risk-low");
+    riskPill.textContent = "Low Risk";
+  } else if (lower.includes("high")) {
+    riskPill.classList.add("risk-high");
+    riskPill.textContent = "High Risk";
   } else {
-    riskBadge.classList.add("risk-unknown");
-    riskIcon.className = "fa-solid fa-circle-question me-2";
-  }
-
-  // --------- Render inputs ----------
-  const tbody = document.getElementById("inputsTableBody");
-  const inputsError = document.getElementById("inputsError");
-
-  const inputsRaw = params.get("inputs"); // JSON string
-  if (!inputsRaw) {
-    inputsError.classList.remove("d-none");
-    inputsError.innerHTML = "No <code>inputs</code> parameter found. Please submit from <code>index.html</code> again.";
-  } else {
-    try {
-      const obj = JSON.parse(inputsRaw);
-
-      // 排序：先把常用的模型字段排前面，其余按字母
-      const priority = ["age","baseline_vas","pcs_score","mcs_ics_score","psqi_score","ly_count","mono_count","alb","glu","a_g"];
-      const keys = Object.keys(obj);
-
-      const sorted = [
-        ...priority.filter(k => keys.includes(k)),
-        ...keys.filter(k => !priority.includes(k)).sort((a,b)=>a.localeCompare(b))
-      ];
-
-      // 渲染表格
-      tbody.innerHTML = sorted.map(k => {
-        const v = (obj[k] ?? "").toString().trim();
-        return `
-          <tr>
-            <th class="px-3 py-2">${esc(prettyKey(k))}</th>
-            <td class="px-3 py-2">${esc(v === "" ? "(empty)" : v)}</td>
-          </tr>
-        `;
-      }).join("");
-
-    } catch (e) {
-      inputsError.classList.remove("d-none");
-      inputsError.textContent = "Failed to parse inputs JSON. Please re-submit from index.html.";
-    }
+    riskPill.classList.add("risk-unknown");
+    riskPill.textContent = riskTextRaw || "Unknown";
   }
 </script>
 
