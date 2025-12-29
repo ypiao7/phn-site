@@ -1,11 +1,126 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="zh">
 <head>
-  <meta charset="utf-8">
-  <title>PHN Site</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PHN Prediction</title>
+  <style>
+    body{font-family:system-ui,Arial;max-width:860px;margin:40px auto;padding:0 16px;background:#f7f9fc}
+    h1{margin:0 0 6px}
+    .muted{color:#666;font-size:14px;margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;margin:6px 0 6px;font-weight:600}
+    input{width:100%;padding:10px 12px;font-size:16px;border:1px solid #cfd6e4;border-radius:12px;background:#fff}
+    .card{background:#fff;border:1px solid #e6ebf5;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(16,24,40,.06)}
+    button{margin-top:14px;padding:12px 16px;font-size:16px;border:0;border-radius:12px;cursor:pointer;background:#2b6ef3;color:#fff}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    #out{margin-top:14px;line-height:1.7}
+    .ok{color:#0a7a2f;font-weight:700}
+    .bad{color:#b42318;font-weight:700}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{padding:4px 10px;border-radius:999px;background:#eef3ff;color:#2b6ef3;font-size:13px}
+  </style>
 </head>
 <body>
-  <h1>PHN Prediction Frontend</h1>
-  <p>If you see this page, GitHub Pages works.</p>
+  <h1>PHN Prediction</h1>
+  <div class="muted">前端在 GitHub Pages，模型在 Render。若 Render 免费版冷启动，首次请求可能慢一些。</div>
+
+  <div class="card">
+    <div class="row">
+      <span class="pill">Input 10 features</span>
+      <span class="pill">POST /api/predict</span>
+    </div>
+
+    <form id="f">
+      <div class="grid">
+        <div>
+          <label>Age</label>
+          <input name="age" type="number" step="1" required>
+        </div>
+        <div>
+          <label>Baseline_VAS</label>
+          <input name="baseline_vas" type="number" step="0.01" required>
+        </div>
+
+        <div>
+          <label>PCS</label>
+          <input name="pcs_score" type="number" step="0.01" required>
+        </div>
+        <div>
+          <label>MCS</label>
+          <input name="mcs_ics_score" type="number" step="0.01" required>
+        </div>
+
+        <div>
+          <label>PSQI</label>
+          <input name="psqi_score" type="number" step="0.01" required>
+        </div>
+        <div>
+          <label>LY#</label>
+          <input name="ly_count" type="number" step="0.01" required>
+        </div>
+
+        <div>
+          <label>MO#</label>
+          <input name="mono_count" type="number" step="0.01" required>
+        </div>
+        <div>
+          <label>ALB</label>
+          <input name="alb" type="number" step="0.01" required>
+        </div>
+
+        <div>
+          <label>Glu</label>
+          <input name="glu" type="number" step="0.01" required>
+        </div>
+        <div>
+          <label>A/G</label>
+          <input name="a_g" type="number" step="0.01" required>
+        </div>
+      </div>
+
+      <button id="btn" type="submit">Predict</button>
+    </form>
+
+    <div id="out"></div>
+  </div>
+
+  <script>
+    const API_BASE = "https://phn-predict-q26i.onrender.com";
+
+    const out = document.getElementById("out");
+    const btn = document.getElementById("btn");
+
+    function esc(s){ return String(s).replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
+
+    document.getElementById("f").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      out.innerHTML = "Predicting...";
+      btn.disabled = true;
+
+      const formData = new FormData(e.target);
+
+      try {
+        const r = await fetch(`${API_BASE}/api/predict`, {
+          method: "POST",
+          body: formData
+        });
+
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || "Request failed");
+
+        const riskClass = j.prediction_class === 1 ? "bad" : "ok";
+        out.innerHTML = `
+          <div><b>Risk:</b> <span class="${riskClass}">${esc(j.risk_text)}</span></div>
+          <div><b>Probability (PHN=1):</b> ${esc(j.prediction_proba)}</div>
+        `;
+      } catch (err) {
+        out.innerHTML = `<span class="bad">Error:</span> ${esc(err.message)}<br>
+        <div class="muted">请确认：Render 后端存在 /api/predict 并返回 JSON；且已开启 CORS。</div>`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
