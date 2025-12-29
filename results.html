@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHN Prediction Results</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --color-brand: #008771;
+      --color-light-bg: #f5f7fa;
+      --color-high-risk: #dc3545;
+      --color-low-risk: #28a745;
+    }
+
+    body {
+      background-color: var(--color-light-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .result-card {
+      margin-top: 80px;
+      padding: 50px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      background-color: white;
+    }
+
+    .page-title {
+      color: #343a40;
+      font-weight: 700;
+    }
+
+    .risk-label {
+      display: inline-block;
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .risk-high {
+      background-color: var(--color-high-risk);
+      color: white;
+      box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+    }
+
+    .risk-low {
+      background-color: var(--color-low-risk);
+      color: white;
+      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+    }
+
+    .risk-unknown {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .prediction-value {
+      font-size: 3rem;
+      font-weight: 300;
+      color: var(--color-brand);
+      margin-top: 5px;
+    }
+
+    .btn-brand {
+      --bs-btn-bg: var(--color-brand);
+      --bs-btn-border-color: var(--color-brand);
+      --bs-btn-hover-bg: #006856;
+      --bs-btn-hover-border-color: #006856;
+      font-weight: 600;
+      padding: 12px 30px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card result-card text-center">
+        <h1 class="page-title mb-5">PHN Prediction Results</h1>
+
+        <div class="mb-5">
+          <p class="fs-5 text-muted mb-2">PHN Risk Prediction</p>
+
+          <!-- ✅ 这里由 JS 动态写入（替代 Jinja） -->
+          <div id="riskBadge" class="risk-label risk-unknown">
+            <i id="riskIcon" class="fa-solid fa-circle-question me-2"></i>
+            <span id="riskText">Unknown</span>
+          </div>
+        </div>
+
+        <div class="mb-5 border-top pt-4">
+          <p class="fs-5 text-muted mb-0">PHN Probability:</p>
+          <p id="probValue" class="prediction-value">N/A</p>
+          <small class="text-secondary">(0.0000 - 1.0000)</small>
+        </div>
+
+        <!-- ✅ GitHub Pages 返回 index.html -->
+        <a href="index.html" class="btn btn-brand btn-lg w-100">
+          <i class="fa-solid fa-arrow-left me-2"></i> Return
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 从 URL 读取参数：result.html?risk_text=Low%20Risk&prediction_proba=0.3867
+  const params = new URLSearchParams(window.location.search);
+  const riskTextRaw = (params.get("risk_text") || "Unknown").trim();
+  const probaRaw = (params.get("prediction_proba") || "N/A").trim();
+
+  const riskBadge = document.getElementById("riskBadge");
+  const riskText = document.getElementById("riskText");
+  const riskIcon = document.getElementById("riskIcon");
+  const probValue = document.getElementById("probValue");
+
+  // 概率显示格式：尽量保留 4 位小数
+  const pNum = Number(probaRaw);
+  if (!Number.isNaN(pNum)) {
+    probValue.textContent = pNum.toFixed(4);
+  } else {
+    probValue.textContent = probaRaw;
+  }
+
+  // 风险标签与图标
+  const lower = riskTextRaw.toLowerCase();
+  riskText.textContent = riskTextRaw;
+
+  // reset class
+  riskBadge.classList.remove("risk-high", "risk-low", "risk-unknown");
+
+  if (lower.includes("high")) {
+    riskBadge.classList.add("risk-high");
+    riskIcon.className = "fa-solid fa-triangle-exclamation me-2";
+    riskText.textContent = "High Risk";
+  } else if (lower.includes("low")) {
+    riskBadge.classList.add("risk-low");
+    riskIcon.className = "fa-solid fa-circle-check me-2";
+    riskText.textContent = "Low Risk";
+  } else {
+    riskBadge.classList.add("risk-unknown");
+    riskIcon.className = "fa-solid fa-circle-question me-2";
+    // riskText 保持原样
+  }
+</script>
+
+</body>
+</html>
