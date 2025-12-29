@@ -1,126 +1,347 @@
-<!doctype html>
-<html lang="zh">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PHN Prediction</title>
-  <style>
-    body{font-family:system-ui,Arial;max-width:860px;margin:40px auto;padding:0 16px;background:#f7f9fc}
-    h1{margin:0 0 6px}
-    .muted{color:#666;font-size:14px;margin-bottom:14px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    label{display:block;margin:6px 0 6px;font-weight:600}
-    input{width:100%;padding:10px 12px;font-size:16px;border:1px solid #cfd6e4;border-radius:12px;background:#fff}
-    .card{background:#fff;border:1px solid #e6ebf5;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(16,24,40,.06)}
-    button{margin-top:14px;padding:12px 16px;font-size:16px;border:0;border-radius:12px;cursor:pointer;background:#2b6ef3;color:#fff}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    #out{margin-top:14px;line-height:1.7}
-    .ok{color:#0a7a2f;font-weight:700}
-    .bad{color:#b42318;font-weight:700}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .pill{padding:4px 10px;border-radius:999px;background:#eef3ff;color:#2b6ef3;font-size:13px}
-  </style>
-</head>
-<body>
-  <h1>PHN Prediction</h1>
-  <div class="muted">前端在 GitHub Pages，模型在 Render。若 Render 免费版冷启动，首次请求可能慢一些。</div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHN Prediction</title>
 
-  <div class="card">
-    <div class="row">
-      <span class="pill">Input 10 features</span>
-      <span class="pill">POST /api/predict</span>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-primary: #00A389;
+            --color-primary-dark: #008771;
+            --color-light-accent: #E0F2F1;
+            --color-body-bg: #f5f7fa;
+        }
+
+        body { background-color: var(--color-body-bg); }
+
+        .page-title {
+            text-align: center; margin-top: 30px; margin-bottom: 5px;
+            font-weight: 700; color: var(--color-primary); font-size: 2.5rem;
+        }
+
+        .text-center.text-muted { margin-bottom: 30px; }
+
+        .card {
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: none;
+            background-color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h4 {
+            color: #343a40; font-weight: 600;
+            border-bottom: 2px solid var(--color-light-accent);
+            padding-bottom: 10px; margin-bottom: 20px;
+        }
+
+        label { font-weight: 500; margin-bottom: 5px; }
+
+        .form-control:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.25rem rgba(0, 163, 137, 0.25);
+        }
+
+        .btn-primary {
+            --bs-btn-bg: var(--color-primary);
+            --bs-btn-border-color: var(--color-primary);
+            --bs-btn-hover-bg: var(--color-primary-dark);
+            --bs-btn-hover-border-color: var(--color-primary-dark);
+        }
+
+        .action-btn-group { margin-top: 30px; margin-bottom: 20px; }
+
+        .normal-range-tip {
+            display: block;
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
+        .result-card {
+            border-left: 6px solid var(--color-primary);
+        }
+
+        .badge-risk-high {
+            background: #b42318 !important;
+        }
+        .badge-risk-low {
+            background: #0a7a2f !important;
+        }
+
+        .small-note {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1 class="page-title">PHN Prediction</h1>
+    <p class="text-center text-muted">Enter patient basic information to predict PHN</p>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <!-- ✅ GitHub Pages: 不要 action="/predict" -->
+            <form id="phnForm">
+
+                <!-- ================= Basic Information ================= -->
+                <div class="card shadow-sm">
+                    <h4>Basic Information (*Required field)</h4>
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label for="age">*Age</label>
+                            <input type="number" class="form-control" id="age" name="age" min="0" max="200" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="baseline_vas">*Baseline_VAS</label>
+                            <!-- ✅ name 改成 baseline_vas（与你后端 app.py 对齐） -->
+                            <input type="number" step="0.1" class="form-control" id="baseline_vas" name="baseline_vas" min="0" max="10" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="pcs_score">*PCS</label>
+                            <input type="number" step="0.01" class="form-control" id="pcs_score" name="pcs_score" min="0" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="mcs_score">*MCS</label>
+                            <input type="number" step="0.01" class="form-control" id="mcs_score" name="mcs_ics_score" min="0" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="psqi_score">*PSQI</label>
+                            <input type="number" step="1" class="form-control" id="psqi_score" name="psqi_score" min="0" max="21" required>
+                        </div>
+
+                        <!-- 非必填项（保留不影响预测，后端不会用它们） -->
+                        <div class="col-md-3">
+                            <label for="gender">Gender</label>
+                            <select class="form-control" id="gender" name="gender">
+                                <option value="" selected></option>
+                                <option value="1">Male</option>
+                                <option value="2">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="bmi">BMI (kg/m&sup2;)</label>
+                            <input type="number" step="0.01" class="form-control" id="bmi" name="bmi" min="0">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="dm">DM</label>
+                            <select class="form-control" id="dm" name="dm">
+                                <option value="" selected></option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="hypertension">Hypertension</label>
+                            <select class="form-control" id="hypertension" name="hypertension">
+                                <option value="" selected></option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="chd">CHD</label>
+                            <select class="form-control" id="chd" name="chd">
+                                <option value="" selected></option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="nsaids_aceta">NSAIDs/Acetaminophen</label>
+                            <select class="form-control" id="nsaids_aceta" name="nsaids_acetaminophen_use">
+                                <option value="" selected></option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="oxy_aceta">Oxycodone/Acetaminophen</label>
+                            <select class="form-control" id="oxy_aceta" name="oxycodone_acetaminophen_use">
+                                <option value="" selected></option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ================= Blood Information ================= -->
+                <div class="card shadow-sm">
+                    <h4>Blood Information (*Required field)</h4>
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label for="ly_count">*LY# (&times;10<sup>9</sup>/L)</label>
+                            <input type="number" step="0.01" class="form-control" id="ly_count" name="ly_count" min="0" required>
+                            <span class="normal-range-tip">References: 1.1–3.2</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="mono_count">*MO# (&times;10<sup>9</sup>/L)</label>
+                            <input type="number" step="0.01" class="form-control" id="mono_count" name="mono_count" min="0" required>
+                            <span class="normal-range-tip">References: 0.1–0.6</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="alb">*ALB (g/L)</label>
+                            <input type="number" step="0.1" class="form-control" id="alb" name="alb" min="0" required>
+                            <span class="normal-range-tip">References: 40–55</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="glu">*Glu (mmol/L)</label>
+                            <input type="number" step="0.01" class="form-control" id="glu" name="glu" min="0" required>
+                            <span class="normal-range-tip">References: 3.9–6.1</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="a_g">*A/G</label>
+                            <input type="number" step="0.1" class="form-control" id="a_g" name="a_g" min="0" required>
+                            <span class="normal-range-tip">References: 1.2–2.4</span>
+                        </div>
+
+                        <!-- 其余字段：保留，但不会影响预测 -->
+                        <div class="col-md-3">
+                            <label for="rbc">RBC (&times;10<sup>12</sup>/L)</label>
+                            <input type="number" step="0.01" class="form-control" id="rbc" name="rbc" min="0">
+                            <span class="normal-range-tip">Male: 4.5–5.9<br>Female: 4.1–5.1</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="aptt_time">APTT(time) (s)</label>
+                            <input type="number" step="0.1" class="form-control" id="aptt_time" name="aptt_time" min="0">
+                            <span class="normal-range-tip">References: 25–40</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="co2">CO<sub>2</sub> (mmol/L)</label>
+                            <input type="number" step="0.1" class="form-control" id="co2" name="co2" min="0">
+                            <span class="normal-range-tip">References: 22–28</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ================= Buttons ================= -->
+                <div class="row action-btn-group">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <button id="resetBtn" type="reset" class="btn btn-primary w-100 btn-lg fw-bold">Reset</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button id="predictBtn" type="submit" class="btn btn-primary w-100 btn-lg fw-bold">Predict</button>
+                    </div>
+                </div>
+
+                <div class="small-note">
+                    Note: This tool is for research/education only and does not constitute medical advice.
+                </div>
+
+            </form>
+
+            <!-- ✅ 结果展示区（替代 result.html） -->
+            <div id="resultArea" class="card result-card shadow-sm d-none">
+                <h4>Prediction Result</h4>
+                <div id="resultBody" class="mt-2"></div>
+            </div>
+
+        </div>
     </div>
 
-    <form id="f">
-      <div class="grid">
-        <div>
-          <label>Age</label>
-          <input name="age" type="number" step="1" required>
-        </div>
-        <div>
-          <label>Baseline_VAS</label>
-          <input name="baseline_vas" type="number" step="0.01" required>
-        </div>
+</div>
 
-        <div>
-          <label>PCS</label>
-          <input name="pcs_score" type="number" step="0.01" required>
-        </div>
-        <div>
-          <label>MCS</label>
-          <input name="mcs_ics_score" type="number" step="0.01" required>
-        </div>
-
-        <div>
-          <label>PSQI</label>
-          <input name="psqi_score" type="number" step="0.01" required>
-        </div>
-        <div>
-          <label>LY#</label>
-          <input name="ly_count" type="number" step="0.01" required>
-        </div>
-
-        <div>
-          <label>MO#</label>
-          <input name="mono_count" type="number" step="0.01" required>
-        </div>
-        <div>
-          <label>ALB</label>
-          <input name="alb" type="number" step="0.01" required>
-        </div>
-
-        <div>
-          <label>Glu</label>
-          <input name="glu" type="number" step="0.01" required>
-        </div>
-        <div>
-          <label>A/G</label>
-          <input name="a_g" type="number" step="0.01" required>
-        </div>
-      </div>
-
-      <button id="btn" type="submit">Predict</button>
-    </form>
-
-    <div id="out"></div>
-  </div>
-
-  <script>
+<script>
+    // ✅ 你的 Render 后端
     const API_BASE = "https://phn-predict-q26i.onrender.com";
 
-    const out = document.getElementById("out");
-    const btn = document.getElementById("btn");
+    const form = document.getElementById("phnForm");
+    const resultArea = document.getElementById("resultArea");
+    const resultBody = document.getElementById("resultBody");
+    const predictBtn = document.getElementById("predictBtn");
 
-    function esc(s){ return String(s).replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
+    function esc(s){
+        return String(s).replace(/[&<>"']/g, m => ({
+            "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+        }[m]));
+    }
 
-    document.getElementById("f").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      out.innerHTML = "Predicting...";
-      btn.disabled = true;
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      const formData = new FormData(e.target);
+        predictBtn.disabled = true;
+        predictBtn.textContent = "Predicting...";
 
-      try {
-        const r = await fetch(`${API_BASE}/api/predict`, {
-          method: "POST",
-          body: formData
-        });
+        resultArea.classList.add("d-none");
+        resultBody.innerHTML = "";
 
-        const j = await r.json();
-        if (!r.ok) throw new Error(j.error || "Request failed");
+        try {
+            const formData = new FormData(form);
 
-        const riskClass = j.prediction_class === 1 ? "bad" : "ok";
-        out.innerHTML = `
-          <div><b>Risk:</b> <span class="${riskClass}">${esc(j.risk_text)}</span></div>
-          <div><b>Probability (PHN=1):</b> ${esc(j.prediction_proba)}</div>
-        `;
-      } catch (err) {
-        out.innerHTML = `<span class="bad">Error:</span> ${esc(err.message)}<br>
-        <div class="muted">请确认：Render 后端存在 /api/predict 并返回 JSON；且已开启 CORS。</div>`;
-      } finally {
-        btn.disabled = false;
-      }
+            // ✅ 只提交后端真正使用的 10 个字段（其他字段不传也行）
+            const payload = new FormData();
+            const keepKeys = [
+                "age","pcs_score","mcs_ics_score","psqi_score",
+                "ly_count","mono_count","alb","glu","a_g","baseline_vas"
+            ];
+            for (const k of keepKeys) payload.append(k, formData.get(k) ?? "");
+
+            const r = await fetch(`${API_BASE}/api/predict`, {
+                method: "POST",
+                body: payload
+            });
+
+            const j = await r.json();
+            if (!r.ok) throw new Error(j.error || "Request failed");
+
+            const isHigh = (j.prediction_class === 1);
+            const badgeClass = isHigh ? "badge-risk-high" : "badge-risk-low";
+            const badgeText = isHigh ? "High Risk" : "Low Risk";
+
+            resultBody.innerHTML = `
+                <div class="mb-3">
+                    <span class="badge ${badgeClass} text-white p-2">${esc(badgeText)}</span>
+                </div>
+                <div><b>Probability (PHN=1):</b> ${esc(j.prediction_proba)}</div>
+            `;
+            resultArea.classList.remove("d-none");
+
+        } catch (err) {
+            resultBody.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <b>Error:</b> ${esc(err.message)}<br>
+                    <div class="small mt-2">
+                        Please confirm the Render API is reachable and returns JSON at <code>/api/predict</code>.
+                    </div>
+                </div>
+            `;
+            resultArea.classList.remove("d-none");
+        } finally {
+            predictBtn.disabled = false;
+            predictBtn.textContent = "Predict";
+        }
     });
-  </script>
+</script>
+
 </body>
 </html>
