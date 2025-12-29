@@ -188,6 +188,22 @@
   const form = document.getElementById("phnForm");
   const btn = document.getElementById("predictBtn");
 
+  // ✅ 后端真正用到的字段（发给 Render 用）
+  const MODEL_KEYS = [
+    "age","pcs_score","mcs_ics_score","psqi_score",
+    "ly_count","mono_count","alb","glu","a_g","baseline_vas"
+  ];
+
+  // ✅ 把整个表单（所有输入项）打包成对象（用于跳转到 results.html 展示）
+  function formDataToObject(fd) {
+    const obj = {};
+    for (const [k, v] of fd.entries()) {
+      // 避免 undefined / null
+      obj[k] = (v === null || v === undefined) ? "" : String(v);
+    }
+    return obj;
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     btn.disabled = true;
@@ -196,12 +212,9 @@
     try {
       const fd = new FormData(form);
 
-      // 只提交后端真正用到的 10 个字段
+      // 1) 发给后端：只发模型需要的字段
       const payload = new FormData();
-      [
-        "age","pcs_score","mcs_ics_score","psqi_score",
-        "ly_count","mono_count","alb","glu","a_g","baseline_vas"
-      ].forEach(k => payload.append(k, fd.get(k)));
+      MODEL_KEYS.forEach(k => payload.append(k, fd.get(k) ?? ""));
 
       const r = await fetch(`${API_BASE}/api/predict`, {
         method: "POST",
@@ -211,14 +224,18 @@
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Prediction failed");
 
-      // ✅ 跳转到独立结果页
+      // 2) 组装跳转参数：预测结果 + 所有输入项
+      const inputsObj = formDataToObject(fd);
+
       const qs = new URLSearchParams({
         prediction_class: j.prediction_class,
         prediction_proba: j.prediction_proba,
-        risk_text: j.risk_text
+        risk_text: j.risk_text,
+        inputs: JSON.stringify(inputsObj)   // ✅ 把所有输入打包带过去
       }).toString();
 
-      window.location.href = `results.html?`rqs}`;
+      // ✅ 跳转到你的 results.html（注意是复数）
+      window.location.href = `results.html?${qs}`;
 
     } catch (err) {
       alert("Prediction failed: " + err.message);
