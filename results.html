@@ -14,6 +14,7 @@
       --color-light-bg: #f5f7fa;
       --color-high-risk: #dc3545;
       --color-low-risk: #28a745;
+      --color-border: #e9ecef;
     }
 
     body {
@@ -22,7 +23,8 @@
     }
 
     .result-card {
-      margin-top: 80px;
+      margin-top: 60px;
+      margin-bottom: 60px;
       padding: 50px;
       border-radius: 18px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -76,6 +78,49 @@
       padding: 12px 30px;
       border-radius: 8px;
     }
+
+    .section-title {
+      font-weight: 700;
+      color: #343a40;
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+
+    .kv-table {
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .kv-table table {
+      margin: 0;
+    }
+
+    .kv-table th {
+      width: 45%;
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+      border-bottom: 1px solid var(--color-border) !important;
+    }
+
+    .kv-table td {
+      border-bottom: 1px solid var(--color-border) !important;
+    }
+
+    .kv-table tr:last-child th,
+    .kv-table tr:last-child td {
+      border-bottom: 0 !important;
+    }
+
+    .small-hint {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    code {
+      color: #0b7285;
+    }
   </style>
 </head>
 
@@ -83,38 +128,89 @@
 
 <div class="container">
   <div class="row justify-content-center">
-    <div class="col-md-7 col-lg-6">
-      <div class="card result-card text-center">
-        <h1 class="page-title mb-5">PHN Prediction Results</h1>
+    <div class="col-lg-9 col-xl-8">
+      <div class="card result-card">
 
-        <div class="mb-5">
+        <!-- ===== Title ===== -->
+        <h1 class="page-title text-center mb-4">PHN Prediction Results</h1>
+
+        <!-- ===== Risk ===== -->
+        <div class="text-center mb-4">
           <p class="fs-5 text-muted mb-2">PHN Risk Prediction</p>
 
-          <!-- ✅ 这里由 JS 动态写入（替代 Jinja） -->
           <div id="riskBadge" class="risk-label risk-unknown">
             <i id="riskIcon" class="fa-solid fa-circle-question me-2"></i>
             <span id="riskText">Unknown</span>
           </div>
         </div>
 
-        <div class="mb-5 border-top pt-4">
+        <!-- ===== Probability ===== -->
+        <div class="text-center mb-4 border-top pt-4">
           <p class="fs-5 text-muted mb-0">PHN Probability:</p>
           <p id="probValue" class="prediction-value">N/A</p>
           <small class="text-secondary">(0.0000 - 1.0000)</small>
         </div>
 
-        <!-- ✅ GitHub Pages 返回 index.html -->
-        <a href="index.html" class="btn btn-brand btn-lg w-100">
-          <i class="fa-solid fa-arrow-left me-2"></i> Return
-        </a>
+        <!-- ===== Inputs ===== -->
+        <div class="border-top pt-4">
+          <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
+            <div>
+              <div class="section-title">Submitted Inputs</div>
+              <div class="small-hint">These values are taken from the form and passed via URL parameter <code>inputs</code>.</div>
+            </div>
+          </div>
+
+          <div class="kv-table mt-3">
+            <table class="table table-sm">
+              <tbody id="inputsTableBody">
+                <!-- JS render rows here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="inputsError" class="alert alert-warning mt-3 d-none mb-0"></div>
+        </div>
+
+        <!-- ===== Buttons ===== -->
+        <div class="mt-4">
+          <a href="index.html" class="btn btn-brand btn-lg w-100">
+            <i class="fa-solid fa-arrow-left me-2"></i> Return
+          </a>
+        </div>
+
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  // 从 URL 读取参数：result.html?risk_text=Low%20Risk&prediction_proba=0.3867
   const params = new URLSearchParams(window.location.search);
+
+  // --------- Helpers ----------
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function prettyKey(k){
+    // 你想显示更“医学友好”的名字，可以在这里映射
+    const map = {
+      age: "Age",
+      baseline_vas: "Baseline VAS",
+      pcs_score: "PCS",
+      mcs_ics_score: "MCS",
+      psqi_score: "PSQI",
+      ly_count: "LY#",
+      mono_count: "MO#",
+      alb: "ALB",
+      glu: "Glu",
+      a_g: "A/G"
+    };
+    return map[k] || k;
+  }
+
+  // --------- Result: risk + proba ----------
   const riskTextRaw = (params.get("risk_text") || "Unknown").trim();
   const probaRaw = (params.get("prediction_proba") || "N/A").trim();
 
@@ -123,21 +219,13 @@
   const riskIcon = document.getElementById("riskIcon");
   const probValue = document.getElementById("probValue");
 
-  // 概率显示格式：尽量保留 4 位小数
   const pNum = Number(probaRaw);
-  if (!Number.isNaN(pNum)) {
-    probValue.textContent = pNum.toFixed(4);
-  } else {
-    probValue.textContent = probaRaw;
-  }
+  probValue.textContent = Number.isNaN(pNum) ? probaRaw : pNum.toFixed(4);
 
-  // 风险标签与图标
   const lower = riskTextRaw.toLowerCase();
   riskText.textContent = riskTextRaw;
 
-  // reset class
   riskBadge.classList.remove("risk-high", "risk-low", "risk-unknown");
-
   if (lower.includes("high")) {
     riskBadge.classList.add("risk-high");
     riskIcon.className = "fa-solid fa-triangle-exclamation me-2";
@@ -149,7 +237,44 @@
   } else {
     riskBadge.classList.add("risk-unknown");
     riskIcon.className = "fa-solid fa-circle-question me-2";
-    // riskText 保持原样
+  }
+
+  // --------- Render inputs ----------
+  const tbody = document.getElementById("inputsTableBody");
+  const inputsError = document.getElementById("inputsError");
+
+  const inputsRaw = params.get("inputs"); // JSON string
+  if (!inputsRaw) {
+    inputsError.classList.remove("d-none");
+    inputsError.innerHTML = "No <code>inputs</code> parameter found. Please submit from <code>index.html</code> again.";
+  } else {
+    try {
+      const obj = JSON.parse(inputsRaw);
+
+      // 排序：先把常用的模型字段排前面，其余按字母
+      const priority = ["age","baseline_vas","pcs_score","mcs_ics_score","psqi_score","ly_count","mono_count","alb","glu","a_g"];
+      const keys = Object.keys(obj);
+
+      const sorted = [
+        ...priority.filter(k => keys.includes(k)),
+        ...keys.filter(k => !priority.includes(k)).sort((a,b)=>a.localeCompare(b))
+      ];
+
+      // 渲染表格
+      tbody.innerHTML = sorted.map(k => {
+        const v = (obj[k] ?? "").toString().trim();
+        return `
+          <tr>
+            <th class="px-3 py-2">${esc(prettyKey(k))}</th>
+            <td class="px-3 py-2">${esc(v === "" ? "(empty)" : v)}</td>
+          </tr>
+        `;
+      }).join("");
+
+    } catch (e) {
+      inputsError.classList.remove("d-none");
+      inputsError.textContent = "Failed to parse inputs JSON. Please re-submit from index.html.";
+    }
   }
 </script>
 
