@@ -18,12 +18,8 @@
     body { background-color: var(--color-body-bg); }
 
     .page-title {
-      text-align: center;
-      margin-top: 30px;
-      margin-bottom: 5px;
-      font-weight: 700;
-      color: var(--color-primary);
-      font-size: 2.5rem;
+      text-align: center; margin-top: 30px; margin-bottom: 5px;
+      font-weight: 700; color: var(--color-primary); font-size: 2.5rem;
     }
 
     .text-center.text-muted { margin-bottom: 30px; }
@@ -38,14 +34,12 @@
     }
 
     .card h4 {
-      color: #343a40;
-      font-weight: 600;
+      color: #343a40; font-weight: 600;
       border-bottom: 2px solid var(--color-light-accent);
-      padding-bottom: 10px;
-      margin-bottom: 20px;
+      padding-bottom: 10px; margin-bottom: 20px;
     }
 
-    label { font-weight: 500; }
+    label { font-weight: 500; margin-bottom: 5px; }
 
     .form-control:focus {
       border-color: var(--color-primary);
@@ -59,18 +53,14 @@
       --bs-btn-hover-border-color: var(--color-primary-dark);
     }
 
+    .action-btn-group { margin-top: 30px; margin-bottom: 50px; }
+
     .normal-range-tip {
       display: block;
       font-size: 0.75rem;
       color: #6c757d;
       margin-top: 2px;
       line-height: 1.2;
-    }
-
-    .small-note {
-      font-size: 0.85rem;
-      color: #6c757d;
-      margin-bottom: 40px;
     }
   </style>
 </head>
@@ -79,172 +69,291 @@
 <div class="container">
 
   <h1 class="page-title">PHN Prediction</h1>
-  <p class="text-center text-muted">
-    Enter patient basic information to predict PHN
-  </p>
+  <p class="text-center text-muted">Enter patient basic information to predict PHN</p>
 
   <div class="row justify-content-center">
     <div class="col-lg-10">
 
-      <!-- ✅ GitHub Pages：不写 action，不写 method -->
+      <!-- ✅ GitHub Pages：不要 action="/predict"，用 JS 调接口 -->
       <form id="phnForm">
 
         <!-- ================= Basic Information ================= -->
-        <div class="card">
-          <h4>Basic Information (*Required)</h4>
+        <div class="card shadow-sm">
+          <h4>Basic Information (*Required field)</h4>
           <div class="row g-3">
 
+            <!-- 必填项 -->
             <div class="col-md-3">
-              <label>*Age</label>
-              <input type="number" class="form-control" name="age" required>
+              <label for="age">*Age</label>
+              <input type="number" class="form-control" id="age" name="age" min="0" max="200" required>
             </div>
 
             <div class="col-md-3">
-              <label>*Baseline VAS</label>
-              <input type="number" step="0.1" class="form-control" name="baseline_vas" min="0" max="10" required>
+              <label for="baseline_vas">*Baseline_VAS</label>
+              <!-- ✅ 重要：name 必须是 baseline_vas（与你后端 FORM_TO_FEATURE 对齐） -->
+              <input type="number" step="0.1" class="form-control" id="baseline_vas" name="baseline_vas" min="0" max="10" required>
             </div>
 
             <div class="col-md-3">
-              <label>*PCS</label>
-              <input type="number" step="0.01" class="form-control" name="pcs_score" required>
+              <label for="pcs_score">*PCS</label>
+              <input type="number" step="0.01" class="form-control" id="pcs_score" name="pcs_score" min="0" required>
             </div>
 
             <div class="col-md-3">
-              <label>*MCS</label>
-              <input type="number" step="0.01" class="form-control" name="mcs_ics_score" required>
+              <label for="mcs_score">*MCS</label>
+              <input type="number" step="0.01" class="form-control" id="mcs_score" name="mcs_ics_score" min="0" required>
             </div>
 
             <div class="col-md-3">
-              <label>*PSQI</label>
-              <input type="number" class="form-control" name="psqi_score" min="0" max="21" required>
+              <label for="psqi_score">*PSQI</label>
+              <input type="number" step="1" class="form-control" id="psqi_score" name="psqi_score" min="0" max="21" required>
+            </div>
+
+            <!-- 非必填（全部保留展示） -->
+            <div class="col-md-3">
+              <label for="gender">Gender</label>
+              <select class="form-control" id="gender" name="gender">
+                <option value="" selected></option>
+                <option value="1">Male</option>
+                <option value="2">Female</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="bmi">BMI (kg/m&sup2;)</label>
+              <input type="number" step="0.01" class="form-control" id="bmi" name="bmi" min="0">
+            </div>
+
+            <div class="col-md-3">
+              <label for="dm">DM</label>
+              <select class="form-control" id="dm" name="dm">
+                <option value="" selected></option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="hypertension">Hypertension</label>
+              <select class="form-control" id="hypertension" name="hypertension">
+                <option value="" selected></option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="chd">CHD</label>
+              <select class="form-control" id="chd" name="chd">
+                <option value="" selected></option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="nsaids_aceta">NSAIDs/Acetaminophen</label>
+              <select class="form-control" id="nsaids_aceta" name="nsaids_acetaminophen_use">
+                <option value="" selected></option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="oxy_aceta">Oxycodone/Acetaminophen</label>
+              <select class="form-control" id="oxy_aceta" name="oxycodone_acetaminophen_use">
+                <option value="" selected></option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
             </div>
 
           </div>
         </div>
 
         <!-- ================= Blood Information ================= -->
-        <div class="card">
-          <h4>Blood Information (*Required)</h4>
+        <div class="card shadow-sm">
+          <h4>Blood Information (*Required field)</h4>
           <div class="row g-3">
 
+            <!-- 必填项（模型用） -->
             <div class="col-md-3">
-              <label>*LY#</label>
-              <input type="number" step="0.01" class="form-control" name="ly_count" required>
-              <span class="normal-range-tip">1.1–3.2</span>
+              <label for="ly_count">*LY# (&times;10<sup>9</sup>/L)</label>
+              <input type="number" step="0.01" class="form-control" id="ly_count" name="ly_count" min="0" required>
+              <span class="normal-range-tip">References: 1.1–3.2</span>
             </div>
 
             <div class="col-md-3">
-              <label>*MO#</label>
-              <input type="number" step="0.01" class="form-control" name="mono_count" required>
-              <span class="normal-range-tip">0.1–0.6</span>
+              <label for="mono_count">*MO# (&times;10<sup>9</sup>/L)</label>
+              <input type="number" step="0.01" class="form-control" id="mono_count" name="mono_count" min="0" required>
+              <span class="normal-range-tip">References: 0.1–0.6</span>
             </div>
 
             <div class="col-md-3">
-              <label>*ALB</label>
-              <input type="number" step="0.1" class="form-control" name="alb" required>
-              <span class="normal-range-tip">40–55 g/L</span>
+              <label for="alb">*ALB (g/L)</label>
+              <input type="number" step="0.1" class="form-control" id="alb" name="alb" min="0" required>
+              <span class="normal-range-tip">References: 40–55</span>
             </div>
 
             <div class="col-md-3">
-              <label>*Glu</label>
-              <input type="number" step="0.01" class="form-control" name="glu" required>
-              <span class="normal-range-tip">3.9–6.1 mmol/L</span>
+              <label for="glu">*Glu (mmol/L)</label>
+              <input type="number" step="0.01" class="form-control" id="glu" name="glu" min="0" required>
+              <span class="normal-range-tip">References: 3.9–6.1</span>
             </div>
 
             <div class="col-md-3">
-              <label>*A/G</label>
-              <input type="number" step="0.1" class="form-control" name="a_g" required>
-              <span class="normal-range-tip">1.2–2.4</span>
+              <label for="a_g">*A/G</label>
+              <input type="number" step="0.1" class="form-control" id="a_g" name="a_g" min="0" required>
+              <span class="normal-range-tip">References: 1.2–2.4</span>
             </div>
 
-          </div>
-        </div>
+            <!-- 其余字段：全部保留展示（不会影响模型预测，但会一起带到 results.html） -->
+            <div class="col-md-3">
+              <label for="rbc">RBC (&times;10<sup>12</sup>/L)</label>
+              <input type="number" step="0.01" class="form-control" id="rbc" name="rbc" min="0">
+              <span class="normal-range-tip">Male: 4.5–5.9<br>Female: 4.1–5.1</span>
+            </div>
 
-        <!-- ================= Buttons ================= -->
-        <div class="row mb-3">
-          <div class="col-md-6 mb-2">
-            <button type="reset" class="btn btn-primary w-100 btn-lg">Reset</button>
-          </div>
-          <div class="col-md-6">
-            <button id="predictBtn" type="submit" class="btn btn-primary w-100 btn-lg">
-              Predict
-            </button>
-          </div>
-        </div>
+            <div class="col-md-3">
+              <label for="aptt_time">APTT(time) (s)</label>
+              <input type="number" step="0.1" class="form-control" id="aptt_time" name="aptt_time" min="0">
+              <span class="normal-range-tip">References: 25–40</span>
+            </div>
 
-        <div class="small-note">
-          This tool is for research and educational purposes only.
-        </div>
+            <div class="col-md-3">
+              <label for="neut_count">NEUT# (&times;10<sup>9</sup>/L)</label>
+              <input type="number" step="0.01" class="form-control" id="neut_count" name="neut_count" min="0">
+              <span class="normal-range-tip">References: 1.8–6.3</span>
+            </div>
 
-      </form>
+            <div class="col-md-3">
+              <label for="eo_count">EO# (&times;10<sup>9</sup>/L)</label>
+              <input type="number" step="0.01" class="form-control" id="eo_count" name="eo_count" min="0">
+              <span class="normal-range-tip">References: 0.02–0.52</span>
+            </div>
 
-    </div>
-  </div>
-</div>
+            <div class="col-md-3">
+              <label for="ba_count">BA# (&times;10<sup>9</sup>/L)</label>
+              <input type="number" step="0.01" class="form-control" id="ba_count" name="ba_count" min="0">
+              <span class="normal-range-tip">References: 0–0.06</span>
+            </div>
 
-<script>
-  // ✅ 你的 Render 后端
-  const API_BASE = "https://phn-predict-q26i.onrender.com";
-  const form = document.getElementById("phnForm");
-  const btn = document.getElementById("predictBtn");
+            <div class="col-md-3">
+              <label for="ly_percent">LY%</label>
+              <input type="number" step="0.1" class="form-control" id="ly_percent" name="ly_percent" min="0">
+              <span class="normal-range-tip">References: 20–50</span>
+            </div>
 
-  // ✅ 后端真正用到的字段（发给 Render 用）
-  const MODEL_KEYS = [
-    "age","pcs_score","mcs_ics_score","psqi_score",
-    "ly_count","mono_count","alb","glu","a_g","baseline_vas"
-  ];
+            <div class="col-md-3">
+              <label for="mo_percent">MO%</label>
+              <input type="number" step="0.1" class="form-control" id="mo_percent" name="mo_percent" min="0">
+              <span class="normal-range-tip">References: 3–10</span>
+            </div>
 
-  // ✅ 把整个表单（所有输入项）打包成对象（用于跳转到 results.html 展示）
-  function formDataToObject(fd) {
-    const obj = {};
-    for (const [k, v] of fd.entries()) {
-      // 避免 undefined / null
-      obj[k] = (v === null || v === undefined) ? "" : String(v);
-    }
-    return obj;
-  }
+            <div class="col-md-3">
+              <label for="ba_percent">BA%</label>
+              <input type="number" step="0.1" class="form-control" id="ba_percent" name="ba_percent" min="0">
+              <span class="normal-range-tip">References: 0–1</span>
+            </div>
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    btn.disabled = true;
-    btn.textContent = "Predicting...";
+            <div class="col-md-3">
+              <label for="mcv">MCV (fL)</label>
+              <input type="number" step="0.1" class="form-control" id="mcv" name="mcv" min="0">
+              <span class="normal-range-tip">References: 80–100</span>
+            </div>
 
-    try {
-      const fd = new FormData(form);
+            <div class="col-md-3">
+              <label for="mchc">MCHC (g/L)</label>
+              <input type="number" step="1" class="form-control" id="mchc" name="mchc" min="0">
+              <span class="normal-range-tip">References: 330–370</span>
+            </div>
 
-      // 1) 发给后端：只发模型需要的字段
-      const payload = new FormData();
-      MODEL_KEYS.forEach(k => payload.append(k, fd.get(k) ?? ""));
+            <div class="col-md-3">
+              <label for="rdw_cv">RDW-CV (%)</label>
+              <input type="number" step="0.1" class="form-control" id="rdw_cv" name="rdw_cv" min="0">
+              <span class="normal-range-tip">References: 10.1–16.0</span>
+            </div>
 
-      const r = await fetch(`${API_BASE}/api/predict`, {
-        method: "POST",
-        body: payload
-      });
+            <div class="col-md-3">
+              <label for="plt">PLT (&times;10<sup>9</sup>/L)</label>
+              <input type="number" step="1" class="form-control" id="plt" name="plt" min="0">
+              <span class="normal-range-tip">References: 150–350</span>
+            </div>
 
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Prediction failed");
+            <div class="col-md-3">
+              <label for="mpv">MPV (fL)</label>
+              <input type="number" step="0.1" class="form-control" id="mpv" name="mpv" min="0">
+              <span class="normal-range-tip">References: 7.0–11.0</span>
+            </div>
 
-      // 2) 组装跳转参数：预测结果 + 所有输入项
-      const inputsObj = formDataToObject(fd);
+            <div class="col-md-3">
+              <label for="tt_time">TT(time) (s)</label>
+              <input type="number" step="0.1" class="form-control" id="tt_time" name="tt_time" min="0">
+              <span class="normal-range-tip">References: 11–14</span>
+            </div>
 
-      const qs = new URLSearchParams({
-        prediction_class: j.prediction_class,
-        prediction_proba: j.prediction_proba,
-        risk_text: j.risk_text,
-        inputs: JSON.stringify(inputsObj)   // ✅ 把所有输入打包带过去
-      }).toString();
+            <div class="col-md-3">
+              <label for="alt">ALT (U/L)</label>
+              <input type="number" step="0.1" class="form-control" id="alt" name="alt" min="0">
+              <span class="normal-range-tip">References: 10–40</span>
+            </div>
 
-      // ✅ 跳转到你的 results.html（注意是复数）
-      window.location.href = `results.html?${qs}`;
+            <div class="col-md-3">
+              <label for="ast">AST (U/L)</label>
+              <input type="number" step="0.1" class="form-control" id="ast" name="ast" min="0">
+              <span class="normal-range-tip">References: 10–30</span>
+            </div>
 
-    } catch (err) {
-      alert("Prediction failed: " + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Predict";
-    }
-  });
-</script>
+            <div class="col-md-3">
+              <label for="tp">TP (g/L)</label>
+              <input type="number" step="0.1" class="form-control" id="tp" name="tp" min="0">
+              <span class="normal-range-tip">References: 65–85</span>
+            </div>
 
-</body>
-</html>
+            <div class="col-md-3">
+              <label for="urea">Urea (mmol/L)</label>
+              <input type="number" step="0.1" class="form-control" id="urea" name="urea" min="0">
+              <span class="normal-range-tip">Ranges vary by age/sex</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="cr">Cr (&mu;mol/L)</label>
+              <input type="number" step="0.1" class="form-control" id="cr" name="cr" min="0">
+              <span class="normal-range-tip">Ranges vary by age/sex</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="co2">CO<sub>2</sub> (mmol/L)</label>
+              <input type="number" step="0.1" class="form-control" id="co2" name="co2" min="0">
+              <span class="normal-range-tip">References: 22–28</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="na">Na (mmol/L)</label>
+              <input type="number" step="0.1" class="form-control" id="na" name="na" min="0">
+              <span class="normal-range-tip">References: 137–147</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="k">K (mmol/L)</label>
+              <input type="number" step="0.01" class="form-control" id="k" name="k" min="0">
+              <span class="normal-range-tip">References: 3.5–5.3</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="glb">GLB (g/L)</label>
+              <input type="number" step="0.1" class="form-control" id="glb" name="glb" min="0">
+              <span class="normal-range-tip">References: 20–40</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="dbil">DBIL (&mu;mol/L)</label>
+              <input type="number" step="0.01" class="form-control" id="dbil" name="dbil" min="0">
+              <span class="normal-range-tip">References vary by analyzer</span>
+            </div>
+
+            <div class="col-md-3">
+              <label for="ibil">IBIL (&mu;mol/L)</label>
+              <input type="number" step="0.1" class="form-control" id="ibil" name="ibil" min="0">
+              <span class="norma
